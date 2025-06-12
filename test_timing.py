@@ -5,8 +5,8 @@ import numpy as np
 from functools import partial
 import jax
 import jax.numpy as jnp
-import blackjax
-from blackjax.ns.utils import finalise, log_weights
+# import blackjax
+# from blackjax.ns.utils import finalise, log_weights
 import time
 import matplotlib.pyplot as plt
 
@@ -22,10 +22,16 @@ sigma = 1
 n_live = 500
 PATH_SAVE = f"./"
 
-dict_data = get_data(q_true, seed, sigma)
+# dict_data = get_data(q_true, seed, sigma)
+# np.savez(f"{PATH_SAVE}/dict_data.npz", **dict_data)
 
+dict_data = np.load(f"{PATH_SAVE}/dict_data.npz", allow_pickle=True)
+dict_data = {k: v for k, v in dict_data.items()}
 
 logl = partial(loglikelihood, dict_data=jax.tree.map(jnp.array, dict_data))
+
+# with jax.disable_jit():
+#     jax.vmap(logl)(sample_from_priors(jax.random.PRNGKey(0), 10)).block_until_ready()
 
 
 def time_likelihood(logl, n, rng_key=jax.random.PRNGKey(0)):
@@ -38,7 +44,9 @@ def time_likelihood(logl, n, rng_key=jax.random.PRNGKey(0)):
 
 times = []
 jit_times = []
-xs = [1, 10, 100, 500, 1000]
+xs = [5, 10, 100, 500, 1000]
+# xs = [1, 2, 3, 4, 5, 6, 10, 20, 50, 100]
+
 for i in xs:
     # warmup to jit it
     t_warm = time_likelihood(logl, i)
@@ -47,6 +55,8 @@ for i in xs:
     jit_times.append(t_warm)
     times.append(t)
     print(f"Time taken for {i} evaluations: {t:.4f} seconds")
+    t = time_likelihood(logl, i)
+    print(f"Time taken for {i} evaluations: {t:.4f} seconds")
 
 
 plt.plot(xs, times, marker="o", label="jitted")
@@ -54,6 +64,7 @@ plt.plot(xs, jit_times, marker="o", label="Compiled (warmup)")
 
 plt.xlabel("Number of evaluations")
 plt.ylabel("Time (seconds)")
+plt.legend()
 plt.title("Time taken for loglikelihood evaluations")
 plt.xscale("log")
 plt.yscale("log")
