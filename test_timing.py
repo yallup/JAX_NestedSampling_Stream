@@ -44,7 +44,7 @@ def time_likelihood(logl, n, rng_key=jax.random.PRNGKey(0)):
 
 times = []
 jit_times = []
-xs = [5, 10, 100, 500, 1000]
+xs = [1, 10, 100, 500, 1000]
 # xs = [1, 2, 3, 4, 5, 6, 10, 20, 50, 100]
 
 for i in xs:
